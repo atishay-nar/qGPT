@@ -1,0 +1,20 @@
+# File paths
+DATA_DIR: "./data"                                # data path
+CENTROID_DIR: "./centroids"                       # centroids path
+TOKENIZED_DATA_DIR: "./tokenized_mnist"           # tokenized data path
+MODEL_SAVE_DIR: "./checkpoints"                   # checkpoint path
+
+# Hyperparameters
+NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)
+IMAGE_SIZE: 28            # mnist images are 28x28
+EMBED_DIM: 64            # embedding dimension
+NUM_HEADS: 4             # number of attention heads
+NUM_LAYERS: 8            # number of Transformer blocks
+BATCH_SIZE: 256           # batch size
+EPOCHS: 12                # number of training epochs
+LR: 0.0003                # learning rate
+WEIGHT_DECAY: 0.0       # weight decay for optimizer
+
+# Misc
+SAVE_INTERVAL: 1        # save model every N epochs
+NUM_WORKERS: 0          # number of workers for data loading (0 if running on Mac)
