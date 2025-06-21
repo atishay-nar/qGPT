@@ -6,11 +6,15 @@ import yaml
 from embeddings import zz_feature_map
 
 # swap test to get similarity score for two quantum states
-def swap_test(q_vector, k_vector, q_wires, k_wires):
+def swap_test(q, k):
+
+    N = len(q)
+    q_wires = list(range(1, 1 + N))
+    k_wires = list(range(1 + N, 1 + 2 * N))
 
     # embed
-    zz_feature_map(q_vector, q_wires)
-    zz_feature_map(k_vector, k_wires)
+    zz_feature_map(q, q_wires)
+    zz_feature_map(k, k_wires)
 
     # apply Hadamard on ancilla wire
     qml.Hadamard(wires=0)
@@ -23,7 +27,7 @@ def swap_test(q_vector, k_vector, q_wires, k_wires):
     qml.Hadamard(wires=0)
 
     # return probability of ancilla wire being in |0> state
-    return qml.probs(wires=0)
+    return qml.probs(0)
 
 
 # single-head quantum mixed-state self-attention
@@ -42,15 +46,11 @@ def single_qmsan(Q, K, V, dev):
                 q = Q[b][i]
                 k = K[b][j]
 
-                q_wires = list(range(1, 1 + N))
-                k_wires = list(range(1 + N, 1 + 2 * N))
-
                 # get score with swap test
-                score = qml.QNode(swap_test, dev)(q, k, q_wires, k_wires)
-                attn[b][i][j] = 2*score[0] - 1 # scale to [-1, 1]
+                score = qml.QNode(swap_test, dev)(q, k)
+                attn[b][i][j] = 2*(2 *score[0] - 1) - 1 # convert to | <Ψ_i|Ψ_j> |^2 and then scale to [-1, 1]
     return attn @ V
-    
-   
+
 
     
 
@@ -59,13 +59,13 @@ if __name__ == "__main__":
     dict = yaml.safe_load(open("configs.yml", "r"))
     cfg = argparse.Namespace(**dict)
 
-    if cfg.EMBED_DIM % cfg.NUM_HEADS != 0:
-        raise ValueError("EMBED_DIM must be divisible by NUM_HEADS")
-    dim_attention = int(cfg.EMBED_DIM / cfg.NUM_HEADS)
+    # if cfg.EMBED_DIM % cfg.NUM_HEADS != 0:
+    #     raise ValueError("EMBED_DIM must be divisible by NUM_HEADS")
+    # # dim_attention = int(cfg.EMBED_DIM / cfg.NUM_HEADS)
 
-    # define device
-    dev = qml.device("default.qubit", wires=(1 + 2 * dim_attention))
-    Q = np.array([[[2, 1], [1, 2]],[[2, 1], [1, 2]]])
-    K = np.array([[[2, 1], [1, 2]],[[2, 0], [1, 2]]])
-    V = np.array([[[1, 0], [0, 1]],[[1, 0], [0, 1]]])
+    Q = np.array([[[2, 1, 0], [1, 2, 1],[0,1, 2]],[[2, 1, 0], [1, 2, 1],[0,1, 2]],[[2, 1, 0], [1, 2, 1],[0,1, 2]]])
+    K = np.array([[[2, 1, 0], [1, 2, 1],[0,1, 2]],[[2, 1, 0], [1, 2, 1],[0,1, 2]],[[2, 1, 0], [1, 2, 1],[0,1, 2]]])
+    V = np.array([[[1, 0, 0], [0, 1, 0],[0, 0, 1]],[[1, 0, 0], [0, 1, 0],[0, 0, 1]],[[1, 0, 0], [0, 1, 0],[0, 0, 1]]])
+
+    dev = qml.device("default.mixed", wires=(1 + 2 * Q.shape[-1]))
     print(single_qmsan(Q, K, V, dev))
