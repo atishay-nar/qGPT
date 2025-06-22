@@ -10,7 +10,7 @@ from sklearn.cluster import MiniBatchKMeans
 
         
 # set random seed
-np.random.seed(0)
+np.random.seed(37)
 
 # centroid calculation function
 def compute_centroids(cfg):

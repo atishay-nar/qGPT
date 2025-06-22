@@ -1,4 +1,5 @@
 local
 data
 tokenized_mnist
+centroids
 __pycache__

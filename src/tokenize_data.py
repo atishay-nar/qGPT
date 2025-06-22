@@ -18,7 +18,7 @@ DEVICE = (
         )
         
 # set random seed
-np.random.seed(0)
+np.random.seed(37)
 
 # class that transforms dataset, here MNIT, into a tokenized array based on the centroids
 class TokenizedData(Dataset):

@@ -7,7 +7,7 @@ MODEL_SAVE_DIR: "./checkpoints"                   # checkpoint path
 # Hyperparameters
 NUM_CLUSTERS: 32          # number of k-means centroids (vocab size)
 IMAGE_SIZE: 28            # mnist images are 28x28
-EMBED_DIM: 64            # embedding dimension
+EMBED_DIM: 16            # embedding dimension
 NUM_HEADS: 4             # number of attention heads
 NUM_LAYERS: 8            # number of Transformer blocks
 BATCH_SIZE: 256           # batch size
