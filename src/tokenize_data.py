@@ -60,11 +60,12 @@ class TokenizedData(Dataset):
         np.save(self.cache_path, token_array)
         print(f"Saved tokenized data to {self.cache_path}")
         return token_array
-    # needed for Dataset
+    
+    # needed for Dataset class
     def __len__(self):
         return len(self.tokenized)
     
-    # needed for Dataset
+    # needed for Dataset class
     def __getitem__(self, idx):
         tokens = self.tokenized[idx]
         return torch.from_numpy(tokens)
