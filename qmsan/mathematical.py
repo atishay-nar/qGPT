@@ -3,9 +3,10 @@ from pennylane.math import fidelity
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import argparse
 import yaml
-from embeddings import zz_feature_map
+# from embeddings import zz_feature_map
 
 # set device
 DEVICE = (
@@ -36,9 +37,9 @@ class SingleQMSANHead(nn.Module):
         self.head_dim = head_dim
 
         # classical linear projections to get to from embed_dim to head_dim
-        self.Q_linear = nn.Linear(embed_dim, self.head_dim, bias=False)
-        self.K_linear = nn.Linear(embed_dim, self.head_dim, bias=False)
-        self.V_linear = nn.Linear(embed_dim, self.head_dim, bias=False)
+        self.Q_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
+        self.K_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
+        self.V_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
 
         # embeds Q and K into quantum states and returns their mixed states
         self.circuit = qml.QNode(get_mixed_state, dev, interface="torch")
@@ -58,35 +59,41 @@ class SingleQMSANHead(nn.Module):
 
     def forward(self, x): 
 
-        Q = self.Q_linear(x)
-        K = self.K_linear(x)
-        V = self.V_linear(x)
+        Q = self.Q_proj(x)
+        K = self.K_proj(x)
+        V = self.V_proj(x)
 
         # batch size and number of tokens per attention head
         B, S, _ = Q.shape
 
         # create blank tensor to hold attention values
-        attn = torch.zeros((B, S, S), dtype=torch.float32, device=DEVICE)
+        attn = torch.zeros((B, S, S), dtype=torch.float32, device=x.device)
+
+        
 
         # compute dot product of each query key pair in quantum
         for b in range(B):
+            # get mixed states for each qi and kj and cache for efficiency
+            rho_Q = []
+            rho_K = []
+            for i in range(S):
+                rho_Q.append(self.Q_mixed(Q[b][i]))
+                rho_K.append(self.K_mixed(Q[b][i]))               
+
             for i in range(S):
                 for j in range(S):
                     if j > i:  # mask
                         score = 0.0
                     else:
-                        q = Q[b][i]
-                        k = K[b][j]
-                        # get mixed states
-                        rho_q = self.Q_mixed(q)
-                        rho_k = self.K_mixed(k)
+
                         # get fidelity score
-                        score = fidelity(rho_q, rho_k)
+                        score = fidelity(rho_Q[i], rho_K[j])
 
                     attn[b][i][j] = score
-
+        # normalize
+        attn = F.normalize(attn, p=1, dim=-1)
         # scale attention scores to range [-1, 1]
-        attn = 2 * attn - torch.ones_like(attn, dtype=torch.float32)
+        #attn = 2 * attn - torch.ones_like(attn, dtype=torch.float32)
 
         out = torch.matmul(attn, V)
         return out
@@ -125,7 +132,7 @@ if __name__ == "__main__":
     Q = np.array([[[2, 1], [1, 2]], [[2, 1], [1, 2]]])
     K = np.array([[[1, -2], [1, 0]], [[0, 1], [1, 2]]])
     V = np.array([[[1, 0], [0, 1]], [[1, 0], [0, 1]]])
-    x = torch.ones((2, 32, 16), dtype=torch.float32).to(DEVICE)
+    x = torch.ones((2, 300, 16), dtype=torch.float32).to(DEVICE)
 
     # test torch module
     dev = qml.device("default.mixed", wires=4)

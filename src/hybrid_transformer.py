@@ -1,8 +1,5 @@
 #imports
-import torch
 import torch.nn as nn
-import argparse
-import yaml
 from qmsan.mathematical import MultiHeadQMSAN
 
 # quantum-clssical hybrid transformer model that utilizes QMSAN for attention
