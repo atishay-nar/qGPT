@@ -1,6 +1,7 @@
 import pennylane as qml
 import numpy as np
 
+# zz feature map. likely will go unused
 def zz_feature_map(x, wires, reps=1):
     n = len(wires)
     for _ in range(reps):

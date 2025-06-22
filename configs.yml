@@ -5,7 +5,7 @@ TOKENIZED_DATA_DIR: "./tokenized_mnist"           # tokenized data path
 MODEL_SAVE_DIR: "./checkpoints"                   # checkpoint path
 
 # Hyperparameters
-NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)
+NUM_CLUSTERS: 32          # number of k-means centroids (vocab size)
 IMAGE_SIZE: 28            # mnist images are 28x28
 EMBED_DIM: 64            # embedding dimension
 NUM_HEADS: 4             # number of attention heads

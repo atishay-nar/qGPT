@@ -2,7 +2,9 @@
 
 Pennylane and Pytorch implementation of QMSAN as part of an image GPT
 
-Utilizing QMSAN from: https://arxiv.org/abs/2403.02871
+qmsan.mathematical is a mathematical simulation of embedding the input vector to a the mixed state and computing fidelity. I have not yet figured out how to do this effectively with a circuit.
 
-Model from: https://github.com/teddykoker/image-gpt
+QMSAN inspired by: https://arxiv.org/abs/2403.02871
+
+Model inspired by: https://github.com/teddykoker/image-gpt
 
