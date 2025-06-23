@@ -1,7 +1,7 @@
 import torch
 import argparse
 import yaml
-
+import pennylane as qml
 
 # function to compute squared euclidian distance
 def squared_euclidean_distance(a, b):
@@ -32,6 +32,19 @@ def count_parameters(model):
 
 if __name__ == "__main__":
     cfg = argparse.Namespace(**yaml.safe_load(open("configs.yml", "r")))
-    # from qGPT import QuantumImageGPT
-    # model = QuantumImageGPT(cfg)
-    # print(f"Model has {count_parameters(model):,} trainable parameters.")
+
+    import pennylane as qml
+    from qGPT import QuantumImageGPT
+
+    num_qubits = cfg.EMBED_DIM / cfg.NUM_HEADS
+    dev = qml.device("default.mixed", wires=int(num_qubits))
+    model = QuantumImageGPT(
+        vocab_size=cfg.NUM_CLUSTERS,
+        embed_dim=cfg.EMBED_DIM,
+        n_heads=cfg.NUM_HEADS,
+        n_layers=cfg.NUM_LAYERS,
+        image_size=cfg.IMAGE_SIZE,
+        quantum_device=dev
+    )
+    
+    print(f"Model has {count_parameters(model):,} trainable parameters.")

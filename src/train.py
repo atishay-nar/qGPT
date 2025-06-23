@@ -83,8 +83,8 @@ if __name__ == "__main__":
     model = QuantumImageGPT(
         vocab_size=cfg.NUM_CLUSTERS,
         embed_dim=cfg.EMBED_DIM,
-        n_heads=cfg.N_HEADS,
-        n_layers=cfg.N_LAYERS,
+        n_heads=cfg.NUM_HEADS,
+        n_layers=cfg.NUM_LAYERS,
         image_size=cfg.IMAGE_SIZE,
         quantum_device=dev
     ).to(DEVICE)
