@@ -4,7 +4,7 @@ import torch.nn as nn
 from hybrid_transformer import HybridTransformer
 
 # Image GPT model with a quantum-classical hybrid transformer
-class qGPT(nn.Module):
+class QuantumImageGPT(nn.Module):
     def __init__(self, vocab_size, embed_dim, n_heads, n_layers, image_size, quantum_device):
         super().__init__()
 
