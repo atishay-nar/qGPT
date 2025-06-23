@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import argparse
 import yaml
+import time
 # from embeddings import zz_feature_map
 
 # set device
@@ -74,6 +75,7 @@ class SingleQMSANHead(nn.Module):
         # compute dot product of each query key pair in quantum
         for b in range(B):
             # get mixed states for each qi and kj and cache for efficiency
+            # certainly not possible with hardware
             rho_Q = []
             rho_K = []
             for i in range(S):
@@ -85,7 +87,6 @@ class SingleQMSANHead(nn.Module):
                     if j > i:  # mask
                         score = 0.0
                     else:
-
                         # get fidelity score
                         score = fidelity(rho_Q[i], rho_K[j])
 
@@ -132,9 +133,16 @@ if __name__ == "__main__":
     Q = np.array([[[2, 1], [1, 2]], [[2, 1], [1, 2]]])
     K = np.array([[[1, -2], [1, 0]], [[0, 1], [1, 2]]])
     V = np.array([[[1, 0], [0, 1]], [[1, 0], [0, 1]]])
-    x = torch.ones((2, 300, 16), dtype=torch.float32).to(DEVICE)
+    x = torch.ones((1, 784, 16), dtype=torch.float32).to(DEVICE)
 
     # test torch module
-    dev = qml.device("default.mixed", wires=4)
+    if torch.cuda.is_available():
+        dev = qml.device("lightning-gpu", wires=4, gpu=True)
+    else:
+        dev = qml.device("default.mixed", wires=4)
+    start = time.time()
     module = MultiHeadQMSAN(cfg.EMBED_DIM, cfg.NUM_HEADS, dev).to(DEVICE)
+    end = time.time()
     print(module(x))
+    end = time.time()
+    print(f"Time taken to run module: {end - start:.4f} seconds")
