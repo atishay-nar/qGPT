@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     # test torch module
     if torch.cuda.is_available():
-        dev = qml.device("lightning-gpu", wires=8, gpu=True)
+        dev = qml.device("lightning.gpu", wires=8)
     else:
         dev = qml.device("default.mixed", wires=8)
     start = time.time()
