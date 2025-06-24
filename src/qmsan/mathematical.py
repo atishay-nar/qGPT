@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import argparse
 import yaml
+from tqdm import tqdm
 import time
 # from embeddings import zz_feature_map
 
@@ -25,9 +26,10 @@ torch.manual_seed(37)
 # embed vector and get mixed state
 # weights not needed for this example, but can be used for more complex embeddings
 def get_mixed_state(inputs, weights):
-    wires = list(range(len(inputs)))
+    n =len(inputs)
+    wires = list(range(n))
     qml.IQPEmbedding(inputs, wires=wires)
-    return qml.density_matrix(wires=wires)
+    return qml.density_matrix(wires=wires[:n//2])
 
 
 # torch module of single-head quantum mixed-state self-attention
@@ -65,30 +67,29 @@ class SingleQMSANHead(nn.Module):
         V = self.V_proj(x)
 
         # batch size and number of tokens per attention head
-        B, S, _ = Q.shape
+        B, S, E = Q.shape
 
         # create blank tensor to hold attention values
         attn = torch.zeros((B, S, S), dtype=torch.float32, device=x.device)
 
         
-
         # compute dot product of each query key pair in quantum
         for b in range(B):
             # get mixed states for each qi and kj and cache for efficiency
             # certainly not possible with hardware
             rho_Q = []
             rho_K = []
-            for i in range(S):
+            for i in tqdm(range(S)):
                 rho_Q.append(self.Q_mixed(Q[b][i]))
-                rho_K.append(self.K_mixed(Q[b][i]))               
+                rho_K.append(self.K_mixed(K[b][i]))               
 
-            for i in range(S):
+            for i in tqdm(range(S)):
                 for j in range(S):
                     if j > i:  # mask
                         score = 0.0
                     else:
-                        # get fidelity score
-                        score = fidelity(rho_Q[i], rho_K[j])
+                        # get overlap
+                        score = torch.trace(torch.matmul(rho_Q[i], rho_K[j]))
 
                     attn[b][i][j] = score
         # normalize
@@ -133,15 +134,15 @@ if __name__ == "__main__":
     Q = np.array([[[2, 1], [1, 2]], [[2, 1], [1, 2]]])
     K = np.array([[[1, -2], [1, 0]], [[0, 1], [1, 2]]])
     V = np.array([[[1, 0], [0, 1]], [[1, 0], [0, 1]]])
-    x = torch.ones((1, 784, 16), dtype=torch.float32).to(DEVICE)
+    x = torch.ones((1, 100, 16), dtype=torch.float32).to(DEVICE)
 
     # test torch module
     if torch.cuda.is_available():
-        dev = qml.device("lightning-gpu", wires=4, gpu=True)
+        dev = qml.device("lightning-gpu", wires=8, gpu=True)
     else:
-        dev = qml.device("default.mixed", wires=4)
+        dev = qml.device("default.mixed", wires=8)
     start = time.time()
-    module = MultiHeadQMSAN(cfg.EMBED_DIM, cfg.NUM_HEADS, dev).to(DEVICE)
+    module = MultiHeadQMSAN(16, 2, dev).to(DEVICE)
     end = time.time()
     print(module(x))
     end = time.time()
