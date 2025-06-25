@@ -71,10 +71,10 @@ if __name__ == "__main__":
         )
     
     # set quantum device
-    num_qubits = cfg.EMBED_DIM / cfg.NUM_HEADS
+    num_qubits = int(cfg.EMBED_DIM / cfg.NUM_HEADS)
 
     if torch.cuda.is_available():
-        dev = qml.device("lightning-gpu", wires=num_qubits, gpu=True)
+        dev = qml.device("lightning.gpu", wires=num_qubits)
     else:
         dev = qml.device("default.mixed", wires=num_qubits)
 
@@ -90,6 +90,7 @@ if __name__ == "__main__":
 
     train_data = TokenizedData(
         tokenized_data_dir=cfg.TOKENIZED_DATA_DIR,
+        centroid_dir=cfg.CENTROID_DIR,
         num_clusters=cfg.NUM_CLUSTERS,
         img_size=cfg.IMAGE_SIZE,
         classes=cfg.CLASSES,

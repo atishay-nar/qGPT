@@ -2,6 +2,10 @@
 import torch
 import torch.nn as nn
 from hybrid_transformer import HybridTransformer
+import pennylane as qml
+import argparse
+import yaml
+import time
 
 # Image GPT model with a quantum-classical hybrid transformer
 class QuantumImageGPT(nn.Module):
@@ -55,3 +59,40 @@ class QuantumImageGPT(nn.Module):
         out = self.ln_f(h)
         logits = self.head(out)
         return logits
+
+
+
+if __name__ == "__main__":
+    dict = yaml.safe_load(open("configs.yml", "r"))
+    cfg = argparse.Namespace(**dict)
+
+    # set device
+    DEVICE = (
+    "cuda"
+    if torch.cuda.is_available()
+    # else "mps" if torch.mps.is_available()
+    else "cpu"
+    )
+
+    x = torch.ones((1, 100), dtype=torch.long).to(DEVICE)
+
+    # test torch module
+    if torch.cuda.is_available():
+        dev = qml.device("lightning.gpu", wires=8)
+    else:
+        dev = qml.device("default.mixed", wires=8)
+
+    start = time.time()
+
+    model = QuantumImageGPT(
+        vocab_size=cfg.NUM_CLUSTERS,
+        embed_dim=cfg.EMBED_DIM,
+        n_heads=cfg.NUM_HEADS,
+        n_layers=cfg.NUM_LAYERS,
+        image_size=cfg.IMAGE_SIZE,
+        quantum_device=dev
+    ).to(DEVICE)
+
+    print(model(x))
+    end = time.time()
+    print(f"Time taken to run module: {end - start:.4f} seconds")

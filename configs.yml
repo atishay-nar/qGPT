@@ -5,15 +5,15 @@ TOKENIZED_DATA_DIR: "./tokenized_mnist"           # tokenized data path
 MODEL_SAVE_DIR: "./checkpoints"                   # checkpoint path
 
 # Hyperparameters
-NUM_CLUSTERS: 32          # number of k-means centroids (vocab size)
+NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)
 IMAGE_SIZE: 10            # mnist images are 28x28
 CLASSES: [0, 1]           # classes to train on
 SAMPLES_PER_CLASS: 2500   # number of samples per class     
 EMBED_DIM: 16             # embedding dimension
 NUM_HEADS: 4              # number of attention heads
-NUM_LAYERS: 8             # number of Transformer blocks
-BATCH_SIZE: 256           # batch size
-EPOCHS: 12                # number of training epochs
+NUM_LAYERS: 2             # number of Transformer blocks
+BATCH_SIZE: 64            # batch size
+EPOCHS: 3                 # number of training epochs
 LR: 0.0003                # learning rate
 WEIGHT_DECAY: 0.0         # weight decay for optimizer
 

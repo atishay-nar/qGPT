@@ -2,4 +2,5 @@ local
 data
 tokenized_mnist
 centroids
+view_tokens.ipynb
 __pycache__

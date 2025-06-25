@@ -24,7 +24,7 @@ np.random.seed(37)
 # class that transforms a dataset, here MNIST, into a tokenized array based on the centroids
 class TokenizedData(Dataset):
     
-    def __init__(self, tokenized_data_dir, num_clusters, img_size, classes, samples_per_class):
+    def __init__(self, tokenized_data_dir, centroid_dir, num_clusters, img_size, classes, samples_per_class):
         super().__init__()
 
         # Where to cache tokenized data
@@ -40,7 +40,7 @@ class TokenizedData(Dataset):
             reduced = ReducedMNISTDataset(img_size, classes=classes, samples_per_class=samples_per_class)
 
             # get centroids
-            centroids_path = os.path.join(cfg.CENTROID_DIR, f"centroids_{num_clusters}.npy")
+            centroids_path = os.path.join(centroid_dir, f"centroids_{num_clusters}.npy")
             self.centroids = torch.tensor(np.load(centroids_path)).to(DEVICE)
             self.tokenized = self.quantize_and_cache(reduced, self.centroids)
     
@@ -75,7 +75,7 @@ class TokenizedData(Dataset):
 if __name__ == "__main__":
     dict = yaml.safe_load(open("configs.yml", "r"))
     cfg = argparse.Namespace(**dict)
-    test = TokenizedData(cfg.TOKENIZED_DATA_DIR, cfg.NUM_CLUSTERS, cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS)
+    test = TokenizedData(cfg.TOKENIZED_DATA_DIR, cfg.CENTROID_DIR, cfg.NUM_CLUSTERS, cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS)
 
 
     
