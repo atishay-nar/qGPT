@@ -11,11 +11,10 @@ from qGPT import QuantumImageGPT
 from tokenize_data import TokenizedData
 
 # train for quantum image GPT
-def train(model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval, weight_decay=None, use_scheduler=False):
+def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval, weight_decay=None, use_scheduler=False):
     os.makedirs(model_save_dir, exist_ok=True)
 
     # load data
-    train_data = TokenizedData(cfg)
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
 
     # set optimizer
@@ -89,7 +88,16 @@ if __name__ == "__main__":
         quantum_device=dev
     ).to(DEVICE)
 
+    train_data = TokenizedData(
+        tokenized_data_dir=cfg.TOKENIZED_DATA_DIR,
+        num_clusters=cfg.NUM_CLUSTERS,
+        img_size=cfg.IMAGE_SIZE,
+        classes=cfg.CLASSES,
+        samples_per_class=cfg.SAMPLES_PER_CLASS
+    )
+
     train(
+        train_data=train_data,
         model_save_dir=cfg.MODEL_SAVE_DIR,
         batch_size=cfg.BATCH_SIZE,
         num_workers=cfg.NUM_WORKERS,

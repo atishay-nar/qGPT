@@ -14,7 +14,7 @@ def squared_euclidean_distance(a, b):
 
 # function to quantize a single image as a string of tokens based on centroids
 def quantize(img, centroids):
-    img = img.permute(1,2, 0).contiguous()
+    img = img.permute(1, 2, 0).contiguous()
     img = img.view(-1, 1) # flatten to pixels
 
     # calc distance to centroids

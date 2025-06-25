@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 import torchvision
 from torchvision import transforms
+from reduced_mnist import ReducedMNISTDataset
 from utils import quantize
 
 # set device
@@ -23,25 +24,25 @@ np.random.seed(37)
 # class that transforms a dataset, here MNIST, into a tokenized array based on the centroids
 class TokenizedData(Dataset):
     
-    def __init__(self, cfg):
+    def __init__(self, tokenized_data_dir, num_clusters, img_size, classes, samples_per_class):
         super().__init__()
 
         # Where to cache tokenized data
-        os.makedirs(cfg.TOKENIZED_DATA_DIR, exist_ok=True)
-        self.cache_path = os.path.join(cfg.TOKENIZED_DATA_DIR, f"MNIST_tokens_{cfg.NUM_CLUSTERS}.npy")
+        os.makedirs(tokenized_data_dir, exist_ok=True)
+        self.cache_path = os.path.join(tokenized_data_dir, f"MNIST_tokens_{num_clusters}.npy")
 
         # If cache exists, load directly; otherwise quantize all images and save
         if os.path.exists(self.cache_path):
             self.tokenized = np.load(self.cache_path, mmap_mode="r").copy()
         else:
-            self.SEQ_LEN = cfg.IMAGE_SIZE ** 2
+            self.SEQ_LEN = img_size * img_size
             # Load raw MNIST dataset 
-            raw_dataset = torchvision.datasets.MNIST(root=cfg.DATA_DIR, train=True,download=True, transform=transforms.ToTensor())
+            reduced = ReducedMNISTDataset(img_size, classes=classes, samples_per_class=samples_per_class)
 
             # get centroids
-            centroids_path = os.path.join(cfg.CENTROID_DIR, f"centroids_{cfg.NUM_CLUSTERS}.npy")
+            centroids_path = os.path.join(cfg.CENTROID_DIR, f"centroids_{num_clusters}.npy")
             self.centroids = torch.tensor(np.load(centroids_path)).to(DEVICE)
-            self.tokenized = self.quantize_and_cache(raw_dataset, self.centroids)
+            self.tokenized = self.quantize_and_cache(reduced, self.centroids)
     
     # quantize images
     def quantize_and_cache(self, pre_images, centroids):
@@ -49,9 +50,9 @@ class TokenizedData(Dataset):
         token_array = np.empty((len(pre_images), self.SEQ_LEN), dtype=np.int32)
         # loop through images
         i = 0
-        for itm in tqdm(pre_images, desc="Quantizing Images"):
+        for img in tqdm(pre_images, desc="Quantizing Images"):
 
-            img = itm[0].detach().clone().to(DEVICE) # create image tensor 
+            img = img.to(DEVICE) # create image tensor 
             tokens = quantize(img, centroids) # quantize image to tokens
             token_array[i] = tokens.cpu().numpy() # store in array
             i += 1
@@ -74,7 +75,7 @@ class TokenizedData(Dataset):
 if __name__ == "__main__":
     dict = yaml.safe_load(open("configs.yml", "r"))
     cfg = argparse.Namespace(**dict)
-    test = TokenizedData(cfg)
+    test = TokenizedData(cfg.TOKENIZED_DATA_DIR, cfg.NUM_CLUSTERS, cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS)
 
 
     
