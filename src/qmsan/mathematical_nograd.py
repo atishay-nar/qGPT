@@ -17,7 +17,7 @@ torch.manual_seed(37)
 
 # embed vector and get mixed state
 # weights not needed for this example, but can be used for more complex embeddings
-def get_mixed_state(inputs, weights):
+def get_mixed_state(inputs):
     n = len(inputs)
     wires = list(range(n))
     qml.IQPEmbedding(inputs, wires=wires)
@@ -37,18 +37,18 @@ class SingleQMSANHead(nn.Module):
         self.V_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
 
         # embeds Q and K into quantum states and returns their mixed states
-        self.circuit = qml.QNode(get_mixed_state, dev, interface="torch", diff_method="adjoint")
+        self.circuit = qml.QNode(get_mixed_state, dev) # , interface="torch", diff_method="adjoint")
 
-        # weight shapes for Torch Layer
-        self.weight_shapes = {"weights": head_dim}
+        # # weight shapes for Torch Layer
+        # self.weight_shapes = {"weights": head_dim}
 
-        # trainable quantum layers for Q and K
-        self.Q_mixed = qml.qnn.TorchLayer(
-            self.circuit, weight_shapes=self.weight_shapes
-        )
-        self.K_mixed = qml.qnn.TorchLayer(
-            self.circuit, weight_shapes=self.weight_shapes
-        )
+        # # trainable quantum layers for Q and K
+        # self.Q_mixed = qml.qnn.TorchLayer(
+        #     self.circuit, weight_shapes=self.weight_shapes
+        # )
+        # self.K_mixed = qml.qnn.TorchLayer(
+        #     self.circuit, weight_shapes=self.weight_shapes
+        # )
     
     def forward(self, x): 
 
@@ -70,8 +70,8 @@ class SingleQMSANHead(nn.Module):
             rho_Q = []
             rho_K = []
             for i in range(S):
-                rho_Q.append(self.Q_mixed(Q[b][i]))
-                rho_K.append(self.K_mixed(K[b][i]))               
+                rho_Q.append(self.circuit(Q[b][i]).detach())
+                rho_K.append(self.circuit(K[b][i]).detach())               
 
             for i in range(S):
                 for j in range(S):
@@ -80,8 +80,8 @@ class SingleQMSANHead(nn.Module):
                     else:
                         # get overlap
                         score = torch.trace(torch.matmul(rho_Q[i], rho_K[j]))
-
-                    attn[b][i][j] = score
+                    attn[b][i][j] = score.real
+                    
         # normalize
         attn = F.normalize(attn, p=1, dim=-1)
         # scale attention scores to range [-1, 1]
@@ -110,10 +110,12 @@ class MultiHeadQMSAN(nn.Module):
 
     def forward(self, x):
         # concatenate all heads
-        out = torch.cat([head(x) for head in self.heads], dim=-1)
+        out = [head(x) for head in self.heads]
+        out = torch.cat(out, dim=-1)
 
         # linear proj
         out = self.W_o(out)
+
         return out
 
 

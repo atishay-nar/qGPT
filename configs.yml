@@ -12,7 +12,7 @@ SAMPLES_PER_CLASS: 2500   # number of samples per class
 EMBED_DIM: 16             # embedding dimension
 NUM_HEADS: 4              # number of attention heads
 NUM_LAYERS: 2             # number of Transformer blocks
-BATCH_SIZE: 64            # batch size
+BATCH_SIZE: 16            # batch size
 EPOCHS: 3                 # number of training epochs
 LR: 0.0003                # learning rate
 WEIGHT_DECAY: 0.0         # weight decay for optimizer

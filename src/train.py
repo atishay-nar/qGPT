@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # set device
     DEVICE = (
         "cuda" if torch.cuda.is_available()
-        else "mps" if torch.mps.is_available()
+        # else "mps" if torch.mps.is_available()
         else "cpu"
         )
     

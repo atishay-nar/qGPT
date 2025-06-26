@@ -4,7 +4,7 @@
 #SBATCH -c 16
 #SBATCH --gpus=a100:1
 #SBATCH --mem=64G
-#SBATCH --time=1-0 
+#SBATCH --time=2-0 
 #SBATCH -p general
 #SBATCH -q public
 #SBATCH -o=job.out
