@@ -10,12 +10,14 @@ from torchvision import transforms
 
 # reducing size of images, classes, and number of samples per class
 class ReducedMNISTDataset(Dataset):
-    def __init__(self, img_size, classes, samples_per_class, raw_data_dir="./data"):
+    def __init__(self, img_size, classes, samples_per_class, raw_data_dir="./data", train=True):
         super().__init__()
         #
         amts = {}
         for c in classes:
             amts[c] = samples_per_class
+            if not train:
+                amts[c] /= 6  # sixth of the amount for test set
 
         transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),  # <-- resize
