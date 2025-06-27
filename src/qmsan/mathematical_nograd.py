@@ -56,8 +56,8 @@ class SingleQMSANHead(nn.Module):
         K = self.K_proj(x)
         V = self.V_proj(x)
 
-        # batch size and number of tokens per attention head
-        B, S, E = Q.shape
+        # batch size and number of tokens, and 
+        B, S, H = Q.shape
 
         # create blank tensor to hold attention values
         attn = torch.zeros((B, S, S), dtype=torch.float32, device=x.device)
