@@ -4,11 +4,13 @@ CENTROID_DIR: "./centroids"                       # centroids path
 TOKENIZED_DATA_DIR: "./tokenized_mnist"           # tokenized data path
 MODEL_SAVE_DIR: "./checkpoints"                   # checkpoint path
 
-# Hyperparameters
-NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)
+# Data parameters
 IMAGE_SIZE: 10            # mnist images are 28x28
 CLASSES: [0, 1]           # classes to train on
-SAMPLES_PER_CLASS: 2500   # number of samples per class     
+SAMPLES_PER_CLASS: 2500   # number of samples per class, mnist has 6000 per class
+
+# Hyperparameters
+NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)     
 EMBED_DIM: 16             # embedding dimension
 NUM_HEADS: 4              # number of attention heads
 NUM_LAYERS: 2             # number of Transformer blocks
