@@ -27,6 +27,52 @@ def generate(model, context, length, num_samples=1):
 
     return output
 
+def sample(model, checkpoint_num, device, centroid_dir, num_clusters, train_data, img_size, n_examples=5, n_samples=5):
+    os.makedirs('./figures', exist_ok=True)
+
+    # load model checkpoint
+    ckpt = torch.load(f"./checkpoints/qgpt_epoch_{checkpoint_num}.pth", map_location=device)
+    model.load_state_dict(ckpt)
+    model.eval()
+
+    # load centroids,
+    centroids_path = os.path.join(centroid_dir, f"centroids_{num_clusters}.npy")
+    centroids = torch.tensor(np.load(centroids_path)).to(device)
+
+    loader = iter(DataLoader(train_data, batch_size=1, shuffle=True))
+
+
+    rows=[]
+    for example in tqdm(range(n_examples), desc="Sampling Images"):
+        # get random image
+        img, _ = next(loader)
+        img = img[0].to(device)
+
+        # quantize image to tokens
+        img = quantize(img, centroids).cpu().numpy() # get tokens and flatten into seq
+        tokens = img.reshape(-1)
+        img = img.reshape(img_size, img_size) # for plotting
+
+        # choose context. here we use the first half of the image
+        context = tokens[:int(len(tokens) / 2)]
+        context_img = np.pad(context, (0, int(len(tokens) / 2))).reshape(img_size, img_size) # for plotting
+        context = torch.from_numpy(context).long().to(device)  # convert to tensor and move to device
+
+        # generate the rest of the image from the context
+        pred = generate(model, context, int(len(tokens) / 2), num_samples=n_samples).cpu().numpy()
+        pred = pred.reshape(-1, img_size, img_size)  # reshape to image size
+
+        # add example to rows
+        rows.append(np.concatenate([context_img[None, ...], pred, img[None, ...]], axis=0)) # 
+
+    fig = np.stack(rows, axis=0)  # stack all rows together
+
+    nrow, ncol, h, w = fig.shape
+    fig = unquantize(fig.swapaxes(1, 2).reshape(h * nrow, w * ncol), centroids).cpu().numpy()
+    fig = (fig * 255).round().astype(np.uint8)
+    pic = Image.fromarray(np.squeeze(fig))
+    pic.save(f"./figures/sample_at_epoch_{checkpoint_num}.png")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ckpt_num", required=True, type=int)

@@ -51,4 +51,4 @@ class ReducedMNISTDataset(Dataset):
 if __name__ == "__main__":
     cfg = argparse.Namespace(**yaml.safe_load(open("configs.yml", "r")))
     test = ReducedMNISTDataset(cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS)
-    print(test[0])
+    print(test[0].shape)

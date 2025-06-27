@@ -54,7 +54,7 @@ def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {avg_loss:.4f}")
         # Save checkpoint periodically
         if (epoch + 1) % save_interval == 0 or (epoch + 1) == epochs:
-            save_path = os.path.join(model_save_dir, f"image_gpt_epoch_{epoch + 1}.pth")
+            save_path = os.path.join(model_save_dir, f"qgpt_epoch_{epoch + 1}.pth")
             torch.save(model.state_dict(), save_path)
             print(f"Saved checkpoint: {save_path}")
 
