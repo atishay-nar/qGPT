@@ -25,29 +25,11 @@ torch.manual_seed(37)
 
 # embed vector and get mixed state
 # weights not needed for this example, but can be used for more complex embeddings
-def mixed_state_swap(inputs, weights):
-    x1, x2 = inputs
-    n = int(np.log2(len(x1)))
-    q_wires = list(range(1, 1+ n))
-    k_wires = list(range(1+n, 1+2*n))
-
-
-    # apply Hadamard on ancilla wire
-    qml.Hadamard(wires=0)
-
-    # embed Q and K into quantum states
-    qml.AmplitudeEmbedding(x1, wires=q_wires, normalize=True)
-    qml.AmplitudeEmbedding(x2, wires=k_wires, normalize=True)
-
-    # perform swap test on n/2
-    for i in range(n // 2):
-        qml.CSWAP(wires=[0, q_wires[i], k_wires[i]])
-    
-    # final hadamard on ancilla wire
-    qml.Hadamard(wires=0)
-
-    # return probability of ancilla wire being in |0>
-    return qml.probs(wires=0)
+def get_mixed_state(inputs):
+    n = int(np.log2(len(inputs)))
+    wires = list(range(n))
+    qml.AmplitudeEmbedding(inputs, wires=wires, normalize=True)
+    return qml.density_matrix(wires=wires[:n//2])
 
 
 # torch module of single-head quantum mixed-state self-attention
@@ -61,20 +43,19 @@ class SingleQMSANHead(nn.Module):
         self.V_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
 
         # embeds Q and K into quantum states and returns their mixed states
-        self.circuit = qml.QNode(mixed_state_swap, dev, interface="torch")
+        self.circuit = qml.QNode(get_mixed_state, dev, interface="torch")
 
-        # weight shapes for Torch Layer
-        self.weight_shapes = {"weights": head_dim}
+        # # weight shapes for Torch Layer
+        # self.weight_shapes = {"weights": head_dim}
 
-        # trainable quantum layers for Q and K
-        self.Q_mixed = qml.qnn.TorchLayer(
-            self.circuit, weight_shapes=self.weight_shapes
-        )
-        self.K_mixed = qml.qnn.TorchLayer(
-            self.circuit, weight_shapes=self.weight_shapes
-        )
-    
-    
+        # # trainable quantum layers for Q and K
+        # self.Q_mixed = qml.qnn.TorchLayer(
+        #     self.circuit, weight_shapes=self.weight_shapes
+        # )
+        # self.K_mixed = qml.qnn.TorchLayer(
+        #     self.circuit, weight_shapes=self.weight_shapes
+        # )
+
 
     def forward(self, x): 
 
@@ -89,23 +70,27 @@ class SingleQMSANHead(nn.Module):
         attn = torch.zeros((B, S, S), dtype=torch.float32, device=x.device)
 
         
-        # compute overlap of each query key pair in quantum
-        for b in range(B):             
-            for i in tqdm(range(S)):
-                start = time.time()
+        # compute dot product of each query key pair in quantum
+        for b in range(B):
+            # get mixed states for each qi and kj and cache for efficiency
+            # certainly not possible with hardware
+            rho_Q = []
+            rho_K = []
+            for i in range(S):
+                rho_Q.append(self.circuit(x[b][i]).detach())
+                rho_K.append(self.circuit(x[b][i]).detach())
+
+            for i in range(S):
                 for j in range(S):
                     if j > i:  # mask
                         score = 0.0
                     else:
-                        # get vectors
-                        x1 = x[b][i]
-                        x2 = x[b][j] # get vectors
                         # get overlap
-                        
-                        score = 2*self.circuit((x1,x2), 1)[0] - 1
+                        score = torch.trace(torch.matmul(rho_Q[i], rho_K[j]))
+                    attn[b][i][j] = score.real
                         
 
-                    attn[b][i][j] = score.real
+                    attn[b][i][j] = score
                 end = time.time()
                 print(f"Time taken for row of swap: {end - start:.4f} seconds")
         # normalize
