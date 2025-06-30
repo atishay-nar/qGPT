@@ -8,10 +8,12 @@ import torch.nn as nn
 import pennylane as qml
 from torch.utils.data import DataLoader
 from qGPT import QuantumImageGPT 
+from reduced_mnist import ReducedMNISTDataset
 from tokenize_data import TokenizedData
+from sample import sample
 
 # train for quantum image GPT
-def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval, weight_decay=None, use_scheduler=False):
+def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval, sample_checkpoint=False, test_data=None, centroid_dir=None,weight_decay=None, use_scheduler=False):
     os.makedirs(model_save_dir, exist_ok=True)
 
     # load data
@@ -52,11 +54,24 @@ def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs
             
         avg_loss = epoch_loss / len(train_loader)
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {avg_loss:.4f}")
+
         # Save checkpoint periodically
         if (epoch + 1) % save_interval == 0 or (epoch + 1) == epochs:
             save_path = os.path.join(model_save_dir, f"qgpt_epoch_{epoch + 1}.pth")
             torch.save(model.state_dict(), save_path)
             print(f"Saved checkpoint: {save_path}")
+
+            if sample_checkpoint: 
+                sample(
+                    model=model,
+                    checkpoint_num=epoch + 1,
+                    device=DEVICE,
+                    centroid_dir=centroid_dir,
+                    num_clusters=model.vocab_size,
+                    test_data=test_data,
+                    img_size=model.image_size,
+                )
+
 
 
 if __name__ == "__main__":
@@ -97,6 +112,8 @@ if __name__ == "__main__":
         samples_per_class=cfg.SAMPLES_PER_CLASS
     )
 
+    test_data = ReducedMNISTDataset(cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS, train=False)
+
     train(
         train_data=train_data,
         model_save_dir=cfg.MODEL_SAVE_DIR,
@@ -106,5 +123,8 @@ if __name__ == "__main__":
         lr=cfg.LR,
         epochs=cfg.EPOCHS,
         save_interval=cfg.SAVE_INTERVAL,
+        sample_checkpoint=True,
+        test_data=test_data,
+        centroid_dir=cfg.CENTROID_DIR,
         weight_decay=cfg.WEIGHT_DECAY
         )
