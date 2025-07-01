@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import argparse
 import yaml
-from tqdm import tqdm
 import time
 # from embeddings import zz_feature_map
 
@@ -77,8 +76,8 @@ class SingleQMSANHead(nn.Module):
             rho_Q = []
             rho_K = []
             for i in range(S):
-                rho_Q.append(self.circuit(x[b][i]).detach())
-                rho_K.append(self.circuit(x[b][i]).detach())
+                rho_Q.append(self.circuit(x[b][i].cpu().detach()))
+                rho_K.append(self.circuit(x[b][i].cpu().detach()))
 
             for i in range(S):
                 for j in range(S):
@@ -89,13 +88,9 @@ class SingleQMSANHead(nn.Module):
                         score = torch.trace(torch.matmul(rho_Q[i], rho_K[j]))
                     attn[b][i][j] = score.real
                         
-
-                    attn[b][i][j] = score
-                end = time.time()
-                print(f"Time taken for row of swap: {end - start:.4f} seconds")
         # normalize
         attn = F.normalize(attn, p=1, dim=-1)
-        # scale attention scores to range [-1, 1]
+        # scale attention scores to range [-1, 1] ASK GLEN
         #attn = 2 * attn - torch.ones_like(attn, dtype=torch.float32)
 
         out = torch.matmul(attn, V)
@@ -137,7 +132,7 @@ if __name__ == "__main__":
 
     # test torch module
     if torch.cuda.is_available():
-        dev = qml.device("lightning.gpu", wires=9)
+        dev = qml.device("default.mixed", wires=9)
     else:
         dev = qml.device("default.mixed", wires=9)
     start = time.time()
