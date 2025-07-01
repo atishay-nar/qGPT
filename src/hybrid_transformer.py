@@ -1,6 +1,6 @@
 #imports
 import torch.nn as nn
-from qmsan.new_math import MultiHeadQMSAN
+from quantum_attention.mathematical import MultiHeadQMSAN
 
 # quantum-clssical hybrid transformer model that utilizes QMSAN for attention
 class HybridTransformer(nn.Module):

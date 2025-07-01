@@ -26,6 +26,9 @@ def quantize(img, centroids):
 def unquantize(tokens, centroids):
     return centroids[tokens]
 
+# def kl_divergence(p, q):
+#     kl = (P * (P.log() - T.log())).sum(dim=1)
+
 # parameter count
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
