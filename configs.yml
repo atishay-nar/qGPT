@@ -13,9 +13,10 @@ SAMPLES_PER_CLASS: 2500   # number of samples per class, mnist has 6000 per clas
 NUM_CLUSTERS: 16          # number of k-means centroids (vocab size)     
 EMBED_DIM: 16             # embedding dimension
 NUM_HEADS: 4              # number of attention heads
+CIRCUIT_REPS: 1           # number of repetitions for quantum circuit
 NUM_LAYERS: 2             # number of Transformer blocks
 BATCH_SIZE: 16            # batch size
-EPOCHS: 5                 # number of training epochs
+EPOCHS: 8                 # number of training epochs
 LR: 0.0003                # learning rate
 WEIGHT_DECAY: 0.0         # weight decay for optimizer
 
