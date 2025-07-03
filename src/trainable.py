@@ -8,6 +8,7 @@ import argparse
 import yaml
 import time
 from embeddings import circuit_14
+from utils import js_divergence
 
 # set device
 DEVICE = (
@@ -20,13 +21,6 @@ DEVICE = (
 # set random seed
 np.random.seed(37)
 torch.manual_seed(37)
-
-
-# function to compute Jensen-Shannon divergence between two distributions vectors
-def js_divergence(p, q):
-    m = 0.5 * (p + q)
-    js = (F.kl_div(p,m, reduction='batchmean') + F.kl_div(q, m, reduction='batchmean')) / 2
-    return js
 
 
 # embed vector and probs
@@ -83,8 +77,8 @@ class SingleQMSANHead(nn.Module):
             rho_Q = []
             rho_K = []
             for i in range(S):
-                rho_Q.append(self.Q_layer(x[b][i]).cpu().detach())
-                rho_K.append(self.K_layer(x[b][i]).cpu().detach())
+                rho_Q.append(self.Q_layer(x[b][i]))
+                rho_K.append(self.K_layer(x[b][i]))
 
             for i in range(S):
                 for j in range(S):

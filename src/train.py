@@ -91,7 +91,7 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         dev = qml.device("lightning.gpu", wires=num_qubits)
     else:
-        dev = qml.device("default.mixed", wires=num_qubits)
+        dev = qml.device("default.qubit", wires=num_qubits)
 
     # define model
     model = QuantumImageGPT(

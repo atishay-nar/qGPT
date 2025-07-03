@@ -2,6 +2,7 @@ import torch
 import argparse
 import yaml
 import pennylane as qml
+import torch.nn.functional as F
 
 # function to compute squared euclidian distance
 def squared_euclidean_distance(a, b):
@@ -26,6 +27,11 @@ def quantize(img, centroids):
 def unquantize(tokens, centroids):
     return centroids[tokens]
 
+# function to compute Jensen-Shannon divergence between two distributions vectors
+def js_divergence(p, q):
+    m = 0.5 * (p + q)
+    js = (F.kl_div(p,m, reduction='batchmean') + F.kl_div(q, m, reduction='batchmean')) / 2
+    return js
 
 # parameter count
 def count_parameters(model):
