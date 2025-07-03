@@ -21,15 +21,11 @@ DEVICE = (
 np.random.seed(37)
 torch.manual_seed(37)
 
-# function to compute KL divergence between two distributions vectors
-def kl_divergence(p, q):
-    kl = (p * (p.log() - q.log())).sum(dim=1)
-    return kl
 
 # function to compute Jensen-Shannon divergence between two distributions vectors
 def js_divergence(p, q):
     m = 0.5 * (p + q)
-    js = (kl_divergence(p, m) + kl_divergence(q, m)) / 2
+    js = (F.kl_div(p,m, reduction='batchmean') + F.kl_div(q, m, reduction='batchmean')) / 2
     return js
 
 
@@ -141,9 +137,9 @@ if __name__ == "__main__":
 
     # test torch module
     if torch.cuda.is_available():
-        dev = qml.device("default.mixed", wires=9)
+        dev = qml.device("lightning.gpu", wires=9)
     else:
-        dev = qml.device("default.mixed", wires=9)
+        dev = qml.device("default.qubit", wires=9)
     start = time.time()
     module = MultiHeadQMSAN(16, 4, dev, 1).to(DEVICE)
     end = time.time()
