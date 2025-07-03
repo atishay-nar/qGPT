@@ -21,23 +21,35 @@ DEVICE = (
 np.random.seed(37)
 torch.manual_seed(37)
 
+# function to compute KL divergence between two distributions vectors
+def kl_divergence(p, q):
+    kl = (p * (p.log() - q.log())).sum(dim=1)
+    return kl
+
+# function to compute Jensen-Shannon divergence between two distributions vectors
+def js_divergence(p, q):
+    m = 0.5 * (p + q)
+    js = (kl_divergence(p, m) + kl_divergence(q, m)) / 2
+    return js
+
 
 # embed vector and probs
 def circuit(inputs, weights):
     n = int(np.log2(len(inputs)))
+    reps = len(weights) // 4
     wires = list(range(n))
     qml.AmplitudeEmbedding(inputs, wires=wires, normalize=True)
-    circuit_14(weights, wires=wires, reps=1)
+    circuit_14(weights, wires=wires, reps=reps)
     return qml.probs()
 
 
 # torch module of single-head quantum mixed-state self-attention
 class SingleQMSANHead(nn.Module):
-    def __init__(self, embed_dim, head_dim, dev, ):
+    def __init__(self, embed_dim, head_dim, dev, n_qlayers):
         super().__init__()
 
         self.head_dim = head_dim
-        self.n_qubits = int(np.log2(embed_dim))
+        n_qubits = int(np.log2(embed_dim))
 
         # classical linear projections only for V
         self.V_proj = nn.Linear(embed_dim, self.head_dim, bias=False)
@@ -46,21 +58,19 @@ class SingleQMSANHead(nn.Module):
         self.circuit = qml.QNode(circuit, dev, interface="torch")
 
         # weight shapes for Torch Layer
-        self.weight_shapes = {"weights": self.n_qubits}
+        self.weight_shapes = {"weights": (4 * n_qlayers, n_qubits)}
 
         # trainable quantum layers for Q and K
-        self.Q_mixed = qml.qnn.TorchLayer(
+        self.Q_layer = qml.qnn.TorchLayer(
             self.circuit, weight_shapes=self.weight_shapes
         )
-        self.K_mixed = qml.qnn.TorchLayer(
+        self.K_layer = qml.qnn.TorchLayer(
             self.circuit, weight_shapes=self.weight_shapes
         )
 
 
     def forward(self, x): 
 
-        # Q = self.Q_proj(x)
-        # K = self.K_proj(x)
         V = self.V_proj(x)
 
         # batch size and number of tokens per attention head
@@ -77,8 +87,8 @@ class SingleQMSANHead(nn.Module):
             rho_Q = []
             rho_K = []
             for i in range(S):
-                rho_Q.append(self.circuit(x[b][i].cpu().detach()))
-                rho_K.append(self.circuit(x[b][i].cpu().detach()))
+                rho_Q.append(self.Q_layer(x[b][i]).cpu().detach())
+                rho_K.append(self.K_layer(x[b][i]).cpu().detach())
 
             for i in range(S):
                 for j in range(S):
@@ -86,8 +96,9 @@ class SingleQMSANHead(nn.Module):
                         score = 0.0
                     else:
                         # get overlap
-                        score = torch.trace(torch.matmul(rho_Q[i], rho_K[j]))
-                    attn[b][i][j] = score.real
+                        score = js_divergence(rho_Q[i], rho_K[j])
+
+                    attn[b][i][j] = score
                         
         # normalize
         attn = F.normalize(attn, p=1, dim=-1)
@@ -100,7 +111,7 @@ class SingleQMSANHead(nn.Module):
 
 # multi-headed QMSAN
 class MultiHeadQMSAN(nn.Module):
-    def __init__(self, embed_dim, n_heads, dev):
+    def __init__(self, embed_dim, n_heads, dev, n_qlayers):
         super().__init__()
         assert embed_dim % n_heads == 0, "Embed dimension must be divisible by number of heads"
         self.head_size = embed_dim // n_heads
@@ -110,7 +121,7 @@ class MultiHeadQMSAN(nn.Module):
 
         # single-head QMSAN heads
         self.heads = nn.ModuleList(
-            [SingleQMSANHead(embed_dim, self.head_size, dev) for _ in range(n_heads)]
+            [SingleQMSANHead(embed_dim, self.head_size, dev, n_qlayers) for _ in range(n_heads)]
         )
 
     def forward(self, x):
@@ -134,7 +145,7 @@ if __name__ == "__main__":
     else:
         dev = qml.device("default.mixed", wires=9)
     start = time.time()
-    module = MultiHeadQMSAN(16, 4, dev).to(DEVICE)
+    module = MultiHeadQMSAN(16, 4, dev, 1).to(DEVICE)
     end = time.time()
     print(module(x))
     end = time.time()

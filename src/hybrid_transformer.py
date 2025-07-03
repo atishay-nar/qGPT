@@ -1,10 +1,10 @@
 #imports
 import torch.nn as nn
-from quantum_attention.mathematical import MultiHeadQMSAN
+from quantum_attention.trainable import MultiHeadQMSAN
 
 # quantum-clssical hybrid transformer model that utilizes QMSAN for attention
 class HybridTransformer(nn.Module):
-    def __init__(self, embed_dim, n_heads, quantum_device):
+    def __init__(self, embed_dim, n_heads, quantum_device, n_qlayers):
         super().__init__()
 
         self.embed_dim = embed_dim
@@ -15,7 +15,7 @@ class HybridTransformer(nn.Module):
         self.ln2 = nn.LayerNorm(embed_dim)
 
         #multi-headed QMSAN attention layer
-        self.multi_head_qmsan = MultiHeadQMSAN(embed_dim, n_heads, dev=quantum_device)
+        self.multi_head_qmsan = MultiHeadQMSAN(embed_dim, n_heads, dev=quantum_device, n_qlayers=n_qlayers)
 
         # multi-layer perceptron for feed-forward network
         self.mlp = nn.Sequential(

@@ -26,8 +26,6 @@ def quantize(img, centroids):
 def unquantize(tokens, centroids):
     return centroids[tokens]
 
-# def kl_divergence(p, q):
-#     kl = (P * (P.log() - T.log())).sum(dim=1)
 
 # parameter count
 def count_parameters(model):
@@ -47,7 +45,8 @@ if __name__ == "__main__":
         n_heads=cfg.NUM_HEADS,
         n_layers=cfg.NUM_LAYERS,
         image_size=cfg.IMAGE_SIZE,
-        quantum_device=dev
+        quantum_device=dev,
+        n_qlayers=cfg.CIRCUIT_REPS
     )
     
     print(f"Model has {count_parameters(model):,} trainable parameters.")

@@ -9,7 +9,7 @@ import time
 
 # Image GPT model with a quantum-classical hybrid transformer
 class QuantumImageGPT(nn.Module):
-    def __init__(self, vocab_size, embed_dim, n_heads, n_layers, image_size, quantum_device):
+    def __init__(self, vocab_size, embed_dim, n_heads, n_layers, image_size, quantum_device, n_qlayers):
         super().__init__()
 
         self.vocab_size = vocab_size
@@ -29,7 +29,7 @@ class QuantumImageGPT(nn.Module):
         nn.init.normal_(self.sos)
 
         # transformer
-        self.transformer_layer = HybridTransformer(self.embed_dim, self.n_heads, self.quantum_device)
+        self.transformer_layer = HybridTransformer(self.embed_dim, self.n_heads, self.quantum_device, n_qlayers)
         self.transformer = nn.ModuleList([self.transformer_layer for _ in range(self.n_layers)])
 
         # layer norm
@@ -90,7 +90,8 @@ if __name__ == "__main__":
         n_heads=cfg.NUM_HEADS,
         n_layers=cfg.NUM_LAYERS,
         image_size=cfg.IMAGE_SIZE,
-        quantum_device=dev
+        quantum_device=dev,
+        n_qlayers=cfg.CIRCUIT_LAYERS
     ).to(DEVICE)
 
     print(model(x))

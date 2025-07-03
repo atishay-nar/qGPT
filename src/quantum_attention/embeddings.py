@@ -41,6 +41,7 @@ def circuit_14(weights, wires, reps=1):
         # CRX
         for i in range(n):
             qml.CRX(weights[rep + 3][i], wires=[wires[(n // 2 + i + 1) % n], wires[(n // 2 + i) % n]])
+
         
         
 
