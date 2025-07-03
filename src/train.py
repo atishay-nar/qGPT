@@ -100,7 +100,8 @@ if __name__ == "__main__":
         n_heads=cfg.NUM_HEADS,
         n_layers=cfg.NUM_LAYERS,
         image_size=cfg.IMAGE_SIZE,
-        quantum_device=dev
+        quantum_device=dev,
+        n_qlayers=cfg.CIRCUIT_REPS
     ).to(DEVICE)
 
     train_data = TokenizedData(

@@ -80,7 +80,7 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         dev = qml.device("lightning.gpu", wires=8)
     else:
-        dev = qml.device("default.mixed", wires=8)
+        dev = qml.device("default.qubit", wires=8)
 
     start = time.time()
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         n_layers=cfg.NUM_LAYERS,
         image_size=cfg.IMAGE_SIZE,
         quantum_device=dev,
-        n_qlayers=cfg.CIRCUIT_LAYERS
+        n_qlayers=cfg.CIRCUIT_REPS
     ).to(DEVICE)
 
     print(model(x))

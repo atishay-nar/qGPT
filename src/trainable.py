@@ -92,14 +92,14 @@ class SingleQMSANHead(nn.Module):
                         score = 0.0
                     else:
                         # get overlap
-                        score = js_divergence(rho_Q[i], rho_K[j])
+                        score = 1 - js_divergence(rho_Q[i], rho_K[j])
 
                     attn[b][i][j] = score
                         
         # normalize
         attn = F.normalize(attn, p=1, dim=-1)
         # scale attention scores to range [-1, 1] ASK GLEN
-        #attn = 2 * attn - torch.ones_like(attn, dtype=torch.float32)
+        # attn = 2 * attn - torch.ones_like(attn, dtype=torch.float32)
 
         out = torch.matmul(attn, V)
         return out
