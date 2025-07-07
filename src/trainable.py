@@ -131,9 +131,9 @@ if __name__ == "__main__":
 
     # test torch module
     if torch.cuda.is_available():
-        dev = qml.device("lightning.gpu", wires=9)
+        dev = qml.device("lightning.qubit", wires=4)
     else:
-        dev = qml.device("default.qubit", wires=9)
+        dev = qml.device("default.qubit", wires=4)
     start = time.time()
     module = MultiHeadQMSAN(16, 4, dev, 1).to(DEVICE)
     end = time.time()

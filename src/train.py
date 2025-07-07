@@ -89,7 +89,7 @@ if __name__ == "__main__":
     num_qubits = int(cfg.EMBED_DIM / cfg.NUM_HEADS)
 
     if torch.cuda.is_available():
-        dev = qml.device("lightning.gpu", wires=num_qubits)
+        dev = qml.device("lightning.qubit", wires=num_qubits)
     else:
         dev = qml.device("default.qubit", wires=num_qubits)
 
