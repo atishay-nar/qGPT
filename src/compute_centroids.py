@@ -3,9 +3,6 @@ import argparse
 import yaml
 import os
 import numpy as np
-import torch
-import torchvision
-from torchvision import transforms
 from sklearn.cluster import MiniBatchKMeans
 from reduced_mnist import ReducedMNISTDataset
 

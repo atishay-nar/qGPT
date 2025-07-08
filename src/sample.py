@@ -7,7 +7,6 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import pennylane as qml
-from torchvision import transforms
 from PIL import Image
 from reduced_mnist import ReducedMNISTDataset
 from qGPT import QuantumImageGPT

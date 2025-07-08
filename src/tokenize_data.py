@@ -6,8 +6,6 @@ import numpy as np
 from tqdm import tqdm
 import torch
 from torch.utils.data import Dataset
-import torchvision
-from torchvision import transforms
 from reduced_mnist import ReducedMNISTDataset
 from utils import quantize
 

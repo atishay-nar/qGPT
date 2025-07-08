@@ -1,5 +1,4 @@
 import pennylane as qml
-from pennylane.math import fidelity
 import numpy as np
 import torch
 import torch.nn as nn
