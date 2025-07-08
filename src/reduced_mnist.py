@@ -1,9 +1,5 @@
-import os
 import argparse
 import yaml
-import numpy as np
-from tqdm import tqdm
-import torch
 from torch.utils.data import Dataset
 import torchvision
 from torchvision import transforms
@@ -12,7 +8,8 @@ from torchvision import transforms
 class ReducedMNISTDataset(Dataset):
     def __init__(self, img_size, classes, samples_per_class, raw_data_dir="./data", train=True):
         super().__init__()
-        #
+
+        # dictionary of classes
         amts = {}
         for c in classes:
             amts[c] = samples_per_class
