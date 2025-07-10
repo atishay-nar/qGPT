@@ -77,9 +77,8 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
 
         for pred_img in pred:
             # unquantize the truth and predicted
-            gen = unquantize(pred_img, centroids).cpu().numpy()
-            truth = unquantize(img, centroids).cpu().numpy()
-            print(gen.shape, truth.shape)
+            gen = unquantize(pred_img, centroids).squeeze(-1).cpu().numpy() # squeeze because we do not need channels
+            truth = unquantize(img, centroids).squeeze(-1).cpu().numpy()
 
             # range 
             data_range = max(gen.max(), truth.max()) - min(gen.min(), truth.min())
@@ -103,8 +102,8 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
         pic.save(f"./figures/sample_at_epoch_{checkpoint_num}.png")
 
     print(f'''
-    SSIM: {ssim} with mean {np.mean(ssim):.4f} and std {np.std(ssim):.4f}
-    PSNR: {psnr} with mean {np.mean(psnr):.4f} and std {np.std(psnr):.4f}
+    SSIM: mean {np.mean(ssim):.4f} and std {np.std(ssim):.4f}
+    PSNR: mean {np.mean(psnr):.4f} and std {np.std(psnr):.4f}
 ''')
 
 if __name__ == "__main__":
