@@ -13,7 +13,7 @@ from tokenize_data import TokenizedData
 from sample import sample
 
 # train for quantum image GPT
-def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval, sample_checkpoint=False, test_data=None, centroid_dir=None,weight_decay=None, use_scheduler=False):
+def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs, save_interval,sample_checkpoint=False, classes = None, test_data=None, centroid_dir=None,weight_decay=None, use_scheduler=False):
     os.makedirs(model_save_dir, exist_ok=True)
 
     # load data
@@ -70,6 +70,7 @@ def train(train_data, model_save_dir, batch_size, num_workers, model, lr, epochs
                     num_clusters=model.vocab_size,
                     test_data=test_data,
                     img_size=model.image_size,
+                    classes=classes
                 )
 
 
@@ -127,5 +128,6 @@ if __name__ == "__main__":
         sample_checkpoint=True,
         test_data=test_data,
         centroid_dir=cfg.CENTROID_DIR,
-        weight_decay=cfg.WEIGHT_DECAY
+        weight_decay=cfg.WEIGHT_DECAY,
+        classes=cfg.CLASSES
         )
