@@ -48,7 +48,7 @@ class TokenizedData(Dataset):
         token_array = np.empty((len(pre_images), self.SEQ_LEN), dtype=np.int32)
         # loop through images
         i = 0
-        for img in tqdm(pre_images, desc="Quantizing Images"):
+        for img, _ in tqdm(pre_images, desc="Quantizing Images"):
 
             img = img.to(DEVICE) # create image tensor 
             tokens = quantize(img, centroids) # quantize image to tokens

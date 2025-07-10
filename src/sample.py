@@ -44,7 +44,7 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
     rows=[]
     for example in tqdm(range(n_examples), desc="Sampling Images"):
         # get random image
-        img = next(loader)
+        img, _ = next(loader)
         img = img[0].to(device)
 
         # quantize image to tokens

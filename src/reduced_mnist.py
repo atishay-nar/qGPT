@@ -31,7 +31,7 @@ class ReducedMNISTDataset(Dataset):
         for itm in raw_dataset:
             img, label = itm
             if label in amts and amts[label] > 0:
-                reduced.append(img)
+                reduced.append((img, label))
                 amts[label] -= 1
     
         return reduced
@@ -42,10 +42,10 @@ class ReducedMNISTDataset(Dataset):
     
     # needed for Dataset class
     def __getitem__(self, idx):
-        img = self.reduced[idx]
-        return img
+        itm = self.reduced[idx]
+        return itm
 
 if __name__ == "__main__":
     cfg = argparse.Namespace(**yaml.safe_load(open("configs.yml", "r")))
     test = ReducedMNISTDataset(cfg.IMAGE_SIZE, classes=cfg.CLASSES, samples_per_class=cfg.SAMPLES_PER_CLASS)
-    print(test[0].shape)
+    print(test[0][0].shape)

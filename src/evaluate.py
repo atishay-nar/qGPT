@@ -1,6 +1,9 @@
 import argparse
 import yaml
 import torch
+import os
+import numpy as np
+from torch.utils.data import DataLoader
 import pennylane as qml
 from qGPT import QuantumImageGPT
 from reduced_mnist import ReducedMNISTDataset
@@ -9,6 +12,16 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 def evaluate(model, checkpoint, device, centroid_dir, num_clusters, test_data, img_size, n_examples=3, n_samples=3):
+    # load model checkpoint
+    ckpt = torch.load(f"./checkpoints/{checkpoint}.pth", map_location=device)
+    model.load_state_dict(ckpt)
+    model.eval()
+
+    # load centroids,
+    centroids_path = os.path.join(centroid_dir, f"centroids_{num_clusters}.npy")
+    centroids = torch.tensor(np.load(centroids_path)).to(device)
+
+    loader = iter(DataLoader(test_data, batch_size=1, shuffle=True))
     return
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ def compute_centroids(num_clusters, img_size, classes, samples_per_class, centro
     reduced_mnist = ReducedMNISTDataset(img_size, classes=classes, samples_per_class=samples_per_class) 
 
     # transform into pixel array
-    train_x = np.stack([x.numpy()for x in reduced_mnist])
+    train_x = np.stack([x.numpy()for (x, _) in reduced_mnist])
     train_x = train_x.transpose(0, 2, 3, 1)
     
     pixels = train_x.reshape(-1, train_x.shape[-1])
