@@ -13,6 +13,11 @@ from qGPT import QuantumImageGPT
 from utils import quantize, unquantize
 from skimage.metrics import structural_similarity, peak_signal_noise_ratio
 
+# set random seed 
+torch.manual_seed(0)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(0)
+
 def generate(model, context, length, num_samples=1):
     output = context.unsqueeze(0).repeat(num_samples, 1)  # add batch size of num_samples so shape [seq len, batch]
 
@@ -75,13 +80,14 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
         pred = generate(model, context, int(len(tokens) / 2), num_samples=n_samples).cpu().numpy()
         pred = pred.reshape(-1, img_size, img_size)  # reshape to image size
 
+        # evaluate the generated images
         for pred_img in pred:
             # unquantize the truth and predicted
             gen = unquantize(pred_img, centroids).squeeze(-1).cpu().numpy() # squeeze because we do not need channels
             truth = unquantize(img, centroids).squeeze(-1).cpu().numpy()
+            
+            data_range = max(gen.max(), truth.max()) - min(gen.min(), truth.min()) # range 
 
-            # range 
-            data_range = max(gen.max(), truth.max()) - min(gen.min(), truth.min())
             # calculate SSIM and PSNR
             ssim.append(structural_similarity(truth, gen, data_range=data_range))
             psnr.append(peak_signal_noise_ratio(truth, gen, data_range=data_range))
@@ -102,8 +108,8 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
         pic.save(f"./figures/sample_at_epoch_{checkpoint_num}.png")
 
     print(f'''
-    SSIM: mean {np.mean(ssim):.4f} and std {np.std(ssim):.4f}
-    PSNR: mean {np.mean(psnr):.4f} and std {np.std(psnr):.4f}
+    SSIM: mean {np.mean(ssim):.4f} std {np.std(ssim):.4f} high {np.max(ssim):.4f} low {np.min(ssim):.4f}
+    PSNR: mean {np.mean(psnr):.4f} std {np.std(psnr):.4f} high {np.max(psnr):.4f} low {np.min(psnr):.4f}
 ''')
 
 if __name__ == "__main__":

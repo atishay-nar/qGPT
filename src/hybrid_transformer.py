@@ -15,7 +15,7 @@ class HybridTransformer(nn.Module):
         self.ln2 = nn.LayerNorm(embed_dim)
 
         #multi-headed QMSAN attention layer
-        self.multi_head_qmsan = MultiHeadQMSAN(embed_dim, n_heads, dev=quantum_device) # n_qlayers=n_qlayers)
+        self.multi_head_qmsan = MultiHeadQMSAN(embed_dim, n_heads, dev=quantum_device) #, n_qlayers=n_qlayers)
 
         # multi-layer perceptron for feed-forward network
         self.mlp = nn.Sequential(
