@@ -1,0 +1,9 @@
+python==3.13.2
+pennylane==0.41.1
+torch==2.7.0
+torchvision==0.22.0
+scikit-learn==1.6.1
+scimage==0.1.7
+numpy==2.2.6
+tqdm==4.67.1
+matplotlib==3.10.3

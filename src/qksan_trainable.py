@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import argparse
 import yaml
 import time
-from embeddings import circuit_14
+from circuits import circuit_14
 from utils import js_divergence
 
 # set device
