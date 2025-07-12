@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script is used to run the training and sampling processes for a machine learning model.
+# This is used to run the training and sampling processes on SOL supercomputer at ASU
 #SBATCH -N 1
 #SBATCH -c 16
 #SBATCH --gpus=a100:1

@@ -60,7 +60,7 @@ def sample(model, checkpoint_num, device, centroid_dir, num_clusters, test_data,
 
         # ensure no duplicate classes before all classes are visited
         if len(visited) < len(classes):
-            while label in visited:
+            while label.item() in visited:
                 img, label = next(loader)
             visited.add(label.item())
 
